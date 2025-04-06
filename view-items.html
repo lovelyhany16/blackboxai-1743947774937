@@ -13,6 +13,7 @@
             <h1 class="text-white text-xl font-bold">Inventory Manager</h1>
             <div class="space-x-4">
                 <a href="index.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                <a href="dashboard.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
                 <a href="add-item.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">Add Item</a>
                 <a href="view-items.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">View Inventory</a>
             </div>
@@ -21,21 +22,49 @@
 
     <main class="container mx-auto p-6">
         <div class="card p-8">
-            <h2 class="text-2xl font-bold mb-4">Inventory Items</h2>
-            <table class="table-auto w-full">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Name</th>
-                        <th class="px-4 py-2">Category</th>
-                        <th class="px-4 py-2">Quantity</th>
-                        <th class="px-4 py-2">Price</th>
-                        <th class="px-4 py-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="item-list">
-                    <!-- Inventory items will be populated here -->
-                </tbody>
-            </table>
+            <h2 class="text-2xl font-bold mb-4">View Inventory</h2>
+            
+            <!-- Search and Filter Section -->
+            <div class="mb-6">
+                <input type="text" id="search-bar" placeholder="Search by name, SKU, or barcode" 
+                       class="form-input w-full mb-4" oninput="filterItems()">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select id="category-filter" class="form-input" onchange="filterItems()">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Stationery">Stationery</option>
+                    </select>
+                    
+                    <select id="stock-filter" class="form-input" onchange="filterItems()">
+                        <option value="">All Stock Status</option>
+                        <option value="low">Low Stock (<5)</option>
+                        <option value="out">Out of Stock</option>
+                        <option value="in">In Stock</option>
+                    </select>
+                    
+                    <button class="btn-primary" onclick="resetFilters()">Reset Filters</button>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2 text-left">Name</th>
+                            <th class="px-4 py-2 text-left">Category</th>
+                            <th class="px-4 py-2 text-left">Quantity</th>
+                            <th class="px-4 py-2 text-left">Price</th>
+                            <th class="px-4 py-2 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-list">
+                        <!-- Inventory items will be populated here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
