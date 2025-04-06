@@ -64,12 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// New item schema with backward compatibility
+// New item schema with location support
 function getItems() {
   const items = JSON.parse(localStorage.getItem(ITEMS_KEY)) || [];
   return items.map(item => ({
     ...item,
-    soldQuantity: item.soldQuantity || 0
+    soldQuantity: item.soldQuantity || 0,
+    location: item.location || 'Main Warehouse' // Default location
   }));
 }
 
@@ -80,7 +81,7 @@ function saveItem(item) {
   localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
 }
 
-// Handle form submission
+// Handle form submission with location
 function handleAddItem(e) {
   e.preventDefault();
   
@@ -90,6 +91,7 @@ function handleAddItem(e) {
     category: document.getElementById('item-category').value,
     quantity: parseInt(document.getElementById('item-quantity').value),
     price: parseFloat(document.getElementById('item-price').value),
+    location: document.getElementById('item-location').value || 'Main Warehouse',
     description: document.getElementById('item-description').value,
     createdAt: new Date().toISOString()
   };
@@ -99,12 +101,12 @@ function handleAddItem(e) {
   addItemForm.reset();
 }
 
-// Render all items in the table
+// Render all items in the table with location
 function renderItems() {
   const items = getItems();
   
   if (items.length === 0) {
-    itemList.innerHTML = '<tr><td colspan="5" class="text-center py-4">No items found</td></tr>';
+    itemList.innerHTML = '<tr><td colspan="6" class="text-center py-4">No items found</td></tr>';
     return;
   }
 
@@ -112,7 +114,10 @@ function renderItems() {
     <tr class="hover:bg-gray-50">
       <td class="border px-4 py-2">${item.name}</td>
       <td class="border px-4 py-2">${item.category}</td>
-      <td class="border px-4 py-2">${item.quantity}</td>
+      <td class="border px-4 py-2">${item.location}</td>
+      <td class="border px-4 py-2 ${item.quantity < 5 ? 'text-red-500 font-medium' : ''}">
+        ${item.quantity} ${item.quantity < 5 ? '(Low Stock)' : ''}
+      </td>
       <td class="border px-4 py-2">$${item.price.toFixed(2)}</td>
       <td class="border px-4 py-2">
         <button class="btn-primary mr-2" onclick="editItem('${item.id}')">Edit</button>
@@ -120,6 +125,96 @@ function renderItems() {
       </td>
     </tr>
   `).join('');
+}
+
+// Filter items based on search and filters
+function filterItems() {
+  const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+  const categoryFilter = document.getElementById('category-filter').value;
+  const locationFilter = document.getElementById('location-filter').value;
+  const stockFilter = document.getElementById('stock-filter').value;
+  
+  const items = getItems();
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm) || 
+                        (item.id && item.id.toLowerCase().includes(searchTerm));
+    
+    const matchesCategory = !categoryFilter || item.category === categoryFilter;
+    const matchesLocation = !locationFilter || item.location === locationFilter;
+    
+    let matchesStock = true;
+    if (stockFilter === 'low') {
+      matchesStock = item.quantity < 5;
+    } else if (stockFilter === 'out') {
+      matchesStock = item.quantity === 0;
+    } else if (stockFilter === 'in') {
+      matchesStock = item.quantity > 0;
+    }
+    
+    return matchesSearch && matchesCategory && matchesLocation && matchesStock;
+  });
+  
+  renderFilteredItems(filteredItems);
+}
+
+// Render filtered items with location
+function renderFilteredItems(items) {
+  const itemList = document.getElementById('item-list');
+  
+  if (items.length === 0) {
+    itemList.innerHTML = '<tr><td colspan="6" class="text-center py-4">No matching items found</td></tr>';
+    return;
+  }
+
+  itemList.innerHTML = items.map(item => `
+    <tr class="hover:bg-gray-50">
+      <td class="border px-4 py-2">${item.name}</td>
+      <td class="border px-4 py-2">${item.category}</td>
+      <td class="border px-4 py-2">${item.location}</td>
+      <td class="border px-4 py-2 ${item.quantity < 5 ? 'text-red-500 font-medium' : ''}">
+        ${item.quantity} ${item.quantity < 5 ? '(Low Stock)' : ''}
+      </td>
+      <td class="border px-4 py-2">$${item.price.toFixed(2)}</td>
+      <td class="border px-4 py-2">
+        <button class="btn-primary mr-2" onclick="editItem('${item.id}')">Edit</button>
+        <button class="btn-danger" onclick="deleteItem('${item.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Reset all filters
+function resetFilters() {
+  document.getElementById('search-bar').value = '';
+  document.getElementById('category-filter').value = '';
+  document.getElementById('location-filter').value = '';
+  document.getElementById('stock-filter').value = '';
+  renderItems();
+}
+
+// Notification functions
+function checkLowStock() {
+  const lowStockItems = getItems().filter(item => item.quantity < 5);
+  if (lowStockItems.length > 0) {
+    const message = `Low stock alert: ${lowStockItems.length} items need restocking`;
+    showAlert(message, 'error');
+    showBrowserNotification(message);
+  }
+}
+
+function showBrowserNotification(message) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Inventory Alert', { body: message });
+  }
+}
+
+async function requestNotificationPermission() {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notification permission granted');
+    }
+  }
 }
 
 // Show alert message
@@ -147,10 +242,14 @@ function deleteItem(id) {
   }
 }
 
+// Edit item (placeholder - to be implemented)
+function editItem(id) {
+  showAlert('Edit functionality coming soon!', 'info');
+}
+
 // Dashboard functionality
 function initDashboard() {
   if (document.getElementById('salesChart')) {
-    // Sales chart
     const ctx = document.getElementById('salesChart').getContext('2d');
     const salesData = getSalesData();
     new Chart(ctx, {
@@ -171,7 +270,6 @@ function initDashboard() {
       }
     });
 
-    // Low stock alerts
     const lowStockItems = getItems().filter(item => item.quantity < 5);
     const lowStockList = document.getElementById('low-stock-list');
     
@@ -179,18 +277,20 @@ function initDashboard() {
       lowStockList.innerHTML = '<li>No low stock items</li>';
     } else {
       lowStockList.innerHTML = lowStockItems.map(item => 
-        `<li>${item.name} (${item.quantity} remaining)</li>`
+        `<li>${item.name} (${item.quantity} remaining at ${item.location})</li>`
       ).join('');
     }
   }
 }
 
-// Edit item (placeholder - to be implemented)
-function editItem(id) {
-    showAlert('Edit functionality coming soon!', 'info');
-}
-
 // Initialize dashboard if on dashboard page
 if (window.location.pathname.includes('dashboard.html')) {
   document.addEventListener('DOMContentLoaded', initDashboard);
+}
+
+// Initialize the view items page
+if (window.location.pathname.includes('view-items.html')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    renderItems();
+  });
 }
