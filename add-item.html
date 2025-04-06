@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item - Inventory Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-white text-xl font-bold">Inventory Manager</h1>
+            <div class="space-x-4">
+                <a href="index.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                <a href="add-item.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">Add Item</a>
+                <a href="view-items.html" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium">View Inventory</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6">
+        <div class="card p-8">
+            <h2 class="text-2xl font-bold mb-4">Add New Item</h2>
+            <form id="add-item-form">
+                <label class="form-label" for="item-name">Item Name</label>
+                <input type="text" id="item-name" class="form-input mb-4" required>
+
+                <label class="form-label" for="item-category">Category</label>
+                <select id="item-category" class="form-input mb-4" required>
+                    <option value="">Select Category</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Furniture">Furniture</option>
+                    <option value="Stationery">Stationery</option>
+                </select>
+
+                <label class="form-label" for="item-quantity">Quantity</label>
+                <input type="number" id="item-quantity" class="form-input mb-4" required>
+
+                <label class="form-label" for="item-price">Price</label>
+                <input type="number" id="item-price" class="form-input mb-4" required>
+
+                <label class="form-label" for="item-description">Description</label>
+                <textarea id="item-description" class="form-input mb-4" rows="4"></textarea>
+
+                <button type="submit" class="btn-primary">Add Item</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
